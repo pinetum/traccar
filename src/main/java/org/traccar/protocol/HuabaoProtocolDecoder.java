@@ -275,8 +275,8 @@ public class HuabaoProtocolDecoder extends BaseProtocolDecoder {
                 case 0x01:
                     position.set(Position.KEY_ODOMETER, buf.readUnsignedInt() * 100);
                     break;
-                case 0x02:
-                    position.set(Position.KEY_FUEL_LEVEL, buf.readUnsignedShort() * 0.1);
+                case 0x8e:
+                    position.set(Position.KEY_FUEL_LEVEL, buf.readUnsignedByte());
                     break;
                 case 0x30:
                     position.set(Position.KEY_RSSI, buf.readUnsignedByte());
@@ -289,26 +289,6 @@ public class HuabaoProtocolDecoder extends BaseProtocolDecoder {
                     if (sentence.startsWith("*M00")) {
                         String lockStatus = sentence.substring(8, 8 + 7);
                         position.set(Position.KEY_BATTERY, Integer.parseInt(lockStatus.substring(2, 5)) * 0.01);
-                    }
-                    break;
-                case 0x91:
-                    position.set(Position.KEY_BATTERY, buf.readUnsignedShort() * 0.1);
-                    position.set(Position.KEY_RPM, buf.readUnsignedShort());
-                    position.set(Position.KEY_OBD_SPEED, buf.readUnsignedByte());
-                    position.set(Position.KEY_THROTTLE, buf.readUnsignedByte() * 100 / 255);
-                    position.set(Position.KEY_ENGINE_LOAD, buf.readUnsignedByte() * 100 / 255);
-                    position.set(Position.KEY_COOLANT_TEMP, buf.readUnsignedByte() - 40);
-                    buf.readUnsignedShort();
-                    position.set(Position.KEY_FUEL_CONSUMPTION, buf.readUnsignedShort() * 0.01);
-                    buf.readUnsignedShort();
-                    buf.readUnsignedInt();
-                    buf.readUnsignedShort();
-                    position.set(Position.KEY_FUEL_USED, buf.readUnsignedShort() * 0.01);
-                    break;
-                case 0x94:
-                    if (length > 0) {
-                        position.set(
-                                Position.KEY_VIN, buf.readCharSequence(length, StandardCharsets.US_ASCII).toString());
                     }
                     break;
                 case 0xD0:
@@ -324,8 +304,38 @@ public class HuabaoProtocolDecoder extends BaseProtocolDecoder {
                 case 0xFE:
                     position.set(Position.KEY_BATTERY_LEVEL, buf.readUnsignedByte());
                     break;
-                case 0xD5:
-                    position.set(Position.KEY_BATTERY, buf.readUnsignedShort() * 0.01);
+                case 0x80:
+                    position.set(Position.KEY_OBD_SPEED, UnitsConverter.knotsFromKph(buf.readUnsignedByte()));
+                    break;
+                case 0x81:
+                    position.set(Position.KEY_RPM, buf.readUnsignedShort());
+                    break;
+                case 0x82:
+                    position.set(Position.KEY_BATTERY, buf.readUnsignedShort() * 0.1);
+                    break;
+                case 0x83:
+                    position.set(Position.KEY_ENGINE_LOAD, buf.readUnsignedByte());
+                    break;
+                case 0x84:
+                    position.set(Position.KEY_COOLANT_TEMP, buf.readUnsignedByte()-40);
+                    break;
+                case 0x85:
+                    position.set(Position.KEY_FUEL_CONSUMPTION, buf.readUnsignedShort() * 0.001);
+                    break;
+                case 0x86:
+                    position.set("airTemp", buf.readUnsignedByte()-40);
+                    break;
+                case 0x88:
+                    position.set("kpa", buf.readUnsignedByte());
+                    break;
+                case 0x89:
+                    position.set("throttle", buf.readUnsignedByte());
+                    break;
+                case 0x8B:
+                    if (length > 0) {
+                        position.set(
+                                Position.KEY_VIN, buf.readCharSequence(length, StandardCharsets.US_ASCII).toString());
+                    }
                     break;
                 case 0xDA:
                     buf.readUnsignedShort(); // string cut count
